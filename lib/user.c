@@ -5,7 +5,7 @@ char ips[FD_SETSIZE][20];
 short ports[FD_SETSIZE];
 
 void user_init(int clients[], int id, const struct sockaddr_in *cli_addr) {
-	char welcome_msg[100];
+	char welcome_msg[CMD_MAX];
 
 	strcpy(names[id], "anonymous");
 	inet_ntop(AF_INET, &cli_addr->sin_addr, ips[id], sizeof(ips[id]));
@@ -16,7 +16,7 @@ void user_init(int clients[], int id, const struct sockaddr_in *cli_addr) {
 }
 
 void user_down(int clients[], int maxi, int user) {
-	char msg[1000];
+	char msg[CMD_MAX];
 	sprintf(msg, "%s is offline.", names[user]);
 	boardcast(clients, maxi, msg);
 }
@@ -27,7 +27,7 @@ void cmd_who(int clients[], int maxi, int user) {
 		if(clients[i] < 0)
 			continue;
 
-		char msg[1000];
+		char msg[CMD_MAX];
 		sprintf(msg, "%s %s/%hd", names[i], ips[i], ports[i]);
 		if(i == user) {
 			strcat(msg, " ->me");
@@ -52,14 +52,14 @@ void cmd_name(int clients[], int maxi, int user, const char *name) {
 	int i;
 	for(i=0; i<=maxi; i++) {
 		if(clients[i] >= 0 && i != user && strcmp(name, names[i]) == 0) {
-			char msg[1000];
+			char msg[CMD_MAX];
 			sprintf(msg, "ERROR: %s has been used by others.", name);
 			send_client(clients[user], msg);
 			return;
 		}
 	}
 
-	char msg[1000];
+	char msg[CMD_MAX];
 	int u_fd = clients[user];
 	clients[user] = -1;
 	sprintf(msg, "%s is now known as %s.", names[user], name);
@@ -85,7 +85,7 @@ void cmd_tell(int clients[], int maxi, int user, const char *name, const char *m
 	int i;
 	for(i=0; i<=maxi; i++) {
 		if(clients[i] >= 0 && strcmp(names[i], name) == 0) {
-			char buf[1000];
+			char buf[CMD_MAX];
 			sprintf(buf, "%s tell you %s", names[user], msg);
 
 			send_client(clients[i], buf);
@@ -98,7 +98,7 @@ void cmd_tell(int clients[], int maxi, int user, const char *name, const char *m
 }
 
 void cmd_yell(int clients[], int maxi, int user, const char *msg) {
-	char buf[1000];
+	char buf[CMD_MAX];
 	sprintf(buf, "%s yell %s", names[user], msg);
 	boardcast(clients, maxi, buf);
 }

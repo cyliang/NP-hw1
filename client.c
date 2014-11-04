@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
 #include <unistd.h>
+
+#define CMD_MAX 1000
 
 int main(int argc, char *argv[]) {
 	if(argc != 3) {
@@ -16,12 +19,21 @@ int main(int argc, char *argv[]) {
 	int sock_fd;
 	int stdin_fd = fileno(stdin);
 
+	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	inet_pton(AF_INET, argv[1], &server_addr.sin_addr);
 	server_addr.sin_port = htons(atoi(argv[2]));
 
 	sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-	connect(sock_fd, (struct sockaddr *) &server_addr, sizeof(server_addr));
+	if(sock_fd == -1) {
+		fputs("Fail to create socket.\n", stderr);
+		exit(2);
+	}
+
+	if(connect(sock_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1) {
+		fputs("Fail to connect.\n", stderr);
+		exit(2);
+	}
 
 	char buf[1000];
 	fd_set r_set;

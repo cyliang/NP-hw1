@@ -2,7 +2,7 @@
 
 int main(int argc, char *argv[]) {
 	if(argc != 2) {
-		printf("Usage: %s <port>\n", argv[0]);
+		fprintf(stderr, "Usage: %s <port>\n", argv[0]);
 		exit(1);
 	}
 
@@ -14,13 +14,24 @@ int main(int argc, char *argv[]) {
 	memset(clients, 0xFF, sizeof(clients));
 
 	struct sockaddr_in listen_addr;
+	memset(&listen_addr, 0, sizeof(listen_addr));
 	listen_addr.sin_family = AF_INET;
 	listen_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	listen_addr.sin_port = htons(atoi(argv[1]));
 
 	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-	bind(listen_fd, (struct sockaddr *) &listen_addr, sizeof(listen_addr));
-	listen(listen_fd, 1024);
+	if(listen_fd == -1) {
+		fputs("Cannot create socket.\n", stderr);
+		exit(2);
+	}
+	if(bind(listen_fd, (struct sockaddr *) &listen_addr, sizeof(listen_addr)) == -1) {
+		fputs("Cannot bind.\n", stderr);
+		exit(2);
+	}
+	if(listen(listen_fd, 1024) == -1) {
+		fputs("Cannot listen.\n", stderr);
+		exit(2);
+	}
 
 	fd_set all_set, r_set;
 	FD_SET(listen_fd, &all_set);
@@ -37,7 +48,6 @@ int main(int argc, char *argv[]) {
 
 			/* boardcast to welcome this client */
 			boardcast(clients, client_maxi, "Someone is coming!");
-			/* hello to this client */
 
 			int i;
 			for(i=0; i<FD_SETSIZE; i++) {
@@ -47,6 +57,7 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
+			/* hello to this client */
 			user_init(clients, i, &client_addr);
 
 			if(i == FD_SETSIZE) {
@@ -69,12 +80,11 @@ int main(int argc, char *argv[]) {
 			if(FD_ISSET(clients[i], &r_set)) {
 				--nready;
 
-				char buf[1000];
+				char buf[CMD_MAX];
 				int n = read(clients[i], buf, 999);
 				if(n == 0) {
 					close(clients[i]);
 					FD_CLR(clients[i], &all_set);
-					/* TODO: change maxi max_fd*/
 					clients[i] = -1;
 					user_down(clients, client_maxi, i);
 				} else {

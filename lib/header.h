@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define CMD_MAX 1000
+
 /* user.c */
 void user_init(int clients[], int id, const struct sockaddr_in *);
 void user_down(int clients[], int maxi, int user);

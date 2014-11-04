@@ -1,7 +1,7 @@
 #include "header.h"
 
 void send_client(int fd, const char *msg) {
-	char buf[1000];
+	char buf[CMD_MAX];
 	sprintf(buf, "[Server] %s\n", msg);
 	write(fd, buf, strlen(buf));
 }
