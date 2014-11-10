@@ -1,3 +1,5 @@
+all: client server
+
 client: client.c
 	gcc -o client client.c
 
@@ -12,3 +14,8 @@ lib/recvsend.o: lib/recvsend.c lib/header.h
 
 lib/user.o: lib/user.c lib/header.h
 	gcc -c -o lib/user.o lib/user.c
+
+.PHONY: clean
+clean:
+	@rm -f client server server.o lib/recvsend.o lib/user.o
+	@echo "Cleaned"
