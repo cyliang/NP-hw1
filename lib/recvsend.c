@@ -8,7 +8,8 @@ void send_client(int fd, const char *msg) {
 
 void proc_cmd(int clients[], int maxi, int user, char *cmd) {
 	char *pos = strtok(cmd, " \n");
-	if(strcmp(pos, "who") == 0) {
+	if(!pos);
+	else if(strcmp(pos, "who") == 0) {
 		cmd_who(clients, maxi, user);
 	} else if(strcmp(pos, "name") == 0) {
 		pos = strtok(NULL, "\n");
