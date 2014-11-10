@@ -11,7 +11,7 @@ void user_init(int clients[], int id, const struct sockaddr_in *cli_addr) {
 	inet_ntop(AF_INET, &cli_addr->sin_addr, ips[id], sizeof(ips[id]));
 	ports[id] = ntohs(cli_addr->sin_port);
 
-	sprintf(welcome_msg, "Hello, anonymous! From: %s/%hd", ips[id], ports[id]);
+	sprintf(welcome_msg, "Hello, anonymous! From: %s/%hu", ips[id], ports[id]);
 	send_client(clients[id], welcome_msg);
 }
 
@@ -28,7 +28,7 @@ void cmd_who(int clients[], int maxi, int user) {
 			continue;
 
 		char msg[CMD_MAX];
-		sprintf(msg, "%s %s/%hd", names[i], ips[i], ports[i]);
+		sprintf(msg, "%s %s/%hu", names[i], ips[i], ports[i]);
 		if(i == user) {
 			strcat(msg, " ->me");
 		}
