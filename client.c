@@ -1,28 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
+#include <netdb.h>
 #include <unistd.h>
 
 #define CMD_MAX 1000
 
 int main(int argc, char *argv[]) {
 	if(argc != 3) {
-		printf("Usage: %s <ip> <port>\n", argv[0]);
+		printf("Usage: %s <host> <port>\n", argv[0]);
 		exit(1);
+	}
+
+	struct hostent *host = gethostbyname(argv[1]);
+	if(host == NULL) {
+			fprintf(stderr, "Cannot get host by %s.\n", argv[1]);
+			exit(2);
 	}
 
 	struct sockaddr_in server_addr;
 	int sock_fd;
-	int stdin_fd = fileno(stdin);
 
 	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
-	inet_pton(AF_INET, argv[1], &server_addr.sin_addr);
 	server_addr.sin_port = htons(atoi(argv[2]));
+	memcpy(&server_addr.sin_addr, host->h_addr, host->h_length);
 
 	sock_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sock_fd == -1) {
@@ -36,6 +43,26 @@ int main(int argc, char *argv[]) {
 	}
 
 	char buf[1000];
+#ifdef FLAVOR
+	if(fork() == 0) {
+		const char *get_line();
+
+		while(1) {
+			sprintf(buf, "%s\n", get_line());
+			if(strcmp(buf, "exit\n") == 0) {
+				close(sock_fd);
+				break;
+			}
+			write(sock_fd, buf, strlen(buf));
+		}
+
+		exit(0);
+	}
+
+	signal(SIGCHLD, exit);
+	while(1) {{
+#else
+	int stdin_fd = fileno(stdin);
 	fd_set r_set;
 	int max_fd = (sock_fd > stdin_fd ? sock_fd : stdin_fd) + 1;
 	FD_ZERO(&r_set);
@@ -55,6 +82,7 @@ int main(int argc, char *argv[]) {
 			write(sock_fd, buf, n);
 		}
 		if(FD_ISSET(sock_fd, &r_set)) {
+#endif
 			int n = read(sock_fd, buf, 999);
 			if(n == 0) {
 				puts("Connection closed by server");

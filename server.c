@@ -47,7 +47,11 @@ int main(int argc, char *argv[]) {
 			int client_fd = accept(listen_fd, (struct sockaddr *) &client_addr, &client_len);
 
 			/* boardcast to welcome this client */
+#ifdef FLAVOR
+			boardcast(clients, client_maxi, "\033[33mSomeone is coming!\033[m");
+#else
 			boardcast(clients, client_maxi, "Someone is coming!");
+#endif
 
 			int i;
 			for(i=0; i<FD_SETSIZE; i++) {
