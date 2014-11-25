@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
 		while(1) {
 			sprintf(buf, "%s\n", get_line());
-			if(strcmp(buf, "exit\n") == 0) {
+			if(strncmp(buf, "exit", 4) == 0 && (buf[4] == ' ' || buf[4] == '\n')) {
 				close(sock_fd);
 				break;
 			}
